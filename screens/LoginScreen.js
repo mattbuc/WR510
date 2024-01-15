@@ -1,14 +1,62 @@
 import { StyleSheet, Text, View, SafeAreaView, Pressable } from 'react-native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Entypo } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
+import * as AppAuth from "expo-app-auth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+
 
 const LoginScreen = () => {
-    const authenticate = () => {
+    const navigation = useNavigation();
+    useEffect(() => {
+        const checkTokenValidity = async () => {
+            const accessToken = await AsyncStorage.getItem("token");
+            const expirationDate = await AsyncStorage.getItem("expirationDate");
+            console.log("access token", accessToken);
+            console.log("expiration date", expirationDate);
 
+            if (accessToken && expirationDate) {
+                const currentTime = Date.now();
+                if (currentTime < parseInt(expirationDate)) {
+                    // ici si le token est valide
+                    navigation.replace("Main");
+                } else {
+                    // ici si le token n'est pas valide
+                    AsyncStorage.removeItem("token");
+                    AsyncStorage.removeItem("expirationDate");
+                }
+            }
+        }
+
+        checkTokenValidity();
+    }, [])
+    async function authenticate() {
+        const config = {
+            issuer: "https://accounts.spotify.com",
+            clientId: "8a867a11dbeb41f4ab9199dcff1688ff",
+            scoped: [
+                "user-read-email",
+                "user-library-read",
+                "user-read-recently-played",
+                "user-top-read",
+                "playlist-read-private",
+                "playlist-read-collaborative",
+                "playlist-modify-public" // ou playlist-modify-private
+            ],
+            redirectUrl: "exp://192.168.228.47:8081"
+        }
+        const result = await AppAuth.authAsync(config);
+        console.log(result);
+        if (result.accessToken) {
+            const expirationDate = new Date(accessTokenExpirationDate).getTime();
+            AsyncStorage.setItem("token", result.accessToken);
+            AsyncStorage.setItem("expirationDate", expirationDate.toString());
+            navigation.navigate("Main")
+        }
     }
     return (
         <LinearGradient colors={["#040306", "#131624"]} style={{ flex: 1 }}>
