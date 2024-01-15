@@ -8,6 +8,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import * as AppAuth from "expo-app-auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { makeRedirectUri, useAuthRequest } from 'expo-auth-session';
 
 
 const LoginScreen = () => {
@@ -34,11 +35,17 @@ const LoginScreen = () => {
 
         checkTokenValidity();
     }, [])
-    async function authenticate() {
-        const config = {
-            issuer: "https://accounts.spotify.com",
+
+    const discovery = {
+        authorizationEndpoint: 'https://accounts.spotify.com/authorize',
+        tokenEndpoint: 'https://accounts.spotify.com/api/token',
+    };
+
+
+    const [request, response, promptAsync] = useAuthRequest(
+        {
             clientId: "8a867a11dbeb41f4ab9199dcff1688ff",
-            scoped: [
+            scopes: [
                 "user-read-email",
                 "user-library-read",
                 "user-read-recently-played",
@@ -47,17 +54,26 @@ const LoginScreen = () => {
                 "playlist-read-collaborative",
                 "playlist-modify-public" // ou playlist-modify-private
             ],
-            redirectUrl: "exp://192.168.228.47:8081"
+            usePKCE: false,
+            redirectUri: makeRedirectUri({ scheme: 'wr510app', path: '/' }),
+        },
+        discovery);
+
+    useEffect(() => {
+        if (response?.type === 'success') {
+            const { code } = response.params;
+            // Gérez le code ici
+            console.log(code);
         }
-        const result = await AppAuth.authAsync(config);
-        console.log(result);
-        if (result.accessToken) {
-            const expirationDate = new Date(accessTokenExpirationDate).getTime();
-            AsyncStorage.setItem("token", result.accessToken);
-            AsyncStorage.setItem("expirationDate", expirationDate.toString());
-            navigation.navigate("Main")
+    }, [response]);
+
+    const authenticate = () => {
+        if (request) {
+            promptAsync();
         }
-    }
+    };
+
+
     return (
         <LinearGradient colors={["#040306", "#131624"]} style={{ flex: 1 }}>
             <SafeAreaView>
@@ -151,4 +167,4 @@ const LoginScreen = () => {
 
 export default LoginScreen;
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({});
