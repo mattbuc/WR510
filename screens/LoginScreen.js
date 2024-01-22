@@ -5,10 +5,11 @@ import { Entypo } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
-import * as AppAuth from "expo-app-auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { makeRedirectUri, useAuthRequest } from 'expo-auth-session';
+import { encode as base64encode } from 'base-64';
+
 
 
 const LoginScreen = () => {
@@ -25,7 +26,8 @@ const LoginScreen = () => {
                 if (currentTime < parseInt(expirationDate)) {
                     // ici si le token est valide
                     navigation.replace("Main");
-                } else {
+                }
+                else {
                     // ici si le token n'est pas valide
                     AsyncStorage.removeItem("token");
                     AsyncStorage.removeItem("expirationDate");
@@ -52,24 +54,70 @@ const LoginScreen = () => {
                 "user-top-read",
                 "playlist-read-private",
                 "playlist-read-collaborative",
-                "playlist-modify-public" // ou playlist-modify-private
+                "playlist-modify-public",
             ],
             usePKCE: false,
-            redirectUri: makeRedirectUri({ scheme: 'wr510app', path: '/' }),
+            redirectUri: makeRedirectUri({ scheme: 'wr510app' }),
         },
-        discovery);
+        discovery
+    );
 
     useEffect(() => {
         if (response?.type === 'success') {
             const { code } = response.params;
-            // Gérez le code ici
-            console.log(code);
+            console.log("Code d'authorisation: ", code);
+            console.log("Response: ", response);
+            handleAuthentication(code);
         }
     }, [response]);
+
+    const handleAuthentication = async (authorizationCode) => {
+        const credentials = {
+            clientId: "8a867a11dbeb41f4ab9199dcff1688ff",
+            clientSecret: "018b8ca6630a4e8b98be2efe41d96526",
+            redirectUri: makeRedirectUri({ scheme: 'wr510app' })
+        };
+
+        const credsB64 = base64encode(`${credentials.clientId}:${credentials.clientSecret}`);
+        const tokenExchangeUrl = 'https://accounts.spotify.com/api/token';
+
+        const tokenExchangeResponse = await fetch(tokenExchangeUrl, {
+            method: 'POST',
+            headers: {
+                Authorization: `Basic ${credsB64}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `grant_type=authorization_code&code=${authorizationCode}&redirect_uri=${credentials.redirectUri}`,
+        });
+
+        const tokenExchangeJson = await tokenExchangeResponse.json();
+        console.log("Token Exchange Response: ", tokenExchangeJson);
+        const {
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            expires_in: expiresIn,
+        } = tokenExchangeJson;
+
+        if (accessToken && refreshToken && expiresIn) {
+            // Perform actions with the obtained tokens
+            console.log('Access Token:', accessToken);
+            console.log('Refresh Token:', refreshToken);
+            console.log('Expires In:', expiresIn);
+
+            // Save tokens to AsyncStorage or perform other actions as needed
+            await AsyncStorage.setItem("token", accessToken);
+            await AsyncStorage.setItem("expirationDate", new Date(Date.now() + expiresIn * 1000).getTime().toString());
+
+            navigation.navigate("Main");
+        } else {
+            console.error("One or more tokens are undefined");
+        }
+    };
 
     const authenticate = () => {
         if (request) {
             promptAsync();
+            console.log("Request: ", request);
         }
     };
 
