@@ -1,6 +1,8 @@
-import { StyleSheet, Text, View, SafeAreaView, ScrollView, Image } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, ScrollView, Image, Pressable } from 'react-native';
 import React, { useEffect, useState } from "react";
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen = () => {
@@ -17,6 +19,7 @@ const HomeScreen = () => {
             return "Bonsoir";
         }
     }
+    const message = greetingMessage();
     const getProfile = async () => {
         try {
             const accessToken = await AsyncStorage.getItem("token");
@@ -46,17 +49,72 @@ const HomeScreen = () => {
     return (
         <LinearGradient colors={["#040306", "#131624"]} style={{ flex: 1 }}>
             <ScrollView style={styles.topView}>
-                <View>
-                    <View>
-                        <Image style={{
+                <View style={{ padding: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        {<Image style={{
                             width: 40,
                             height: 40,
                             borderRadius: 20,
                             resizeMode: "cover",
-                        }} source={{ uri: userProfile?.images[0].url }} />
-                        <Text style={{ color: "white" }}>{userProfile?.display_name}</Text>
+                        }} source={{ uri: userProfile?.images[0].url }} />}
+                        <Text style={{ marginLeft: 10, fontSize: 20, fontWeight: "bold", color: "white" }}>{message}</Text>
                     </View>
+                    <MaterialCommunityIcons name="lightning-bolt-outline" size={24} color="white" />
                 </View>
+                <View style={{
+                    marginHorizontal: 12,
+                    marginVertical: 5,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                }}>
+                    <Pressable style={{
+                        backgroundColor: "#282828",
+                        padding: 10,
+                        borderRadius: 30,
+                    }}>
+                        <Text style={{ fontSize: 15, color: "white" }}>Musique</Text>
+                    </Pressable>
+
+                    <Pressable style={{
+                        backgroundColor: "#282828",
+                        padding: 10,
+                        borderRadius: 30,
+                    }}>
+                        <Text style={{ fontSize: 15, color: "white" }}>Podcast</Text>
+                    </Pressable>
+                </View>
+
+                <View>
+                    <Pressable onPress={() => navigation.navigate("Liked")}
+                        style={{
+                            marginBottom: 10,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 10,
+                            flex: 1,
+                            marginHorizontal: 10,
+                            marginVertical: 8,
+                            backgroundColor: "#202020",
+                            borderRadius: 4,
+                            elevation: 3,
+                        }}>
+                        <LinearGradient colors={["#33006F", "#FFFFFF"]}>
+                            <Pressable style={{
+                                width: 55,
+                                height: 55,
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}>
+                                <AntDesign name="heart" size={24} color="white" />
+                            </Pressable>
+                        </LinearGradient>
+                        <Text style={{ color: "white", fontSize: 13, fontWeight: "bold" }}>
+                            Titre aimé
+                        </Text>
+                    </Pressable>
+                </View>
+
             </ScrollView>
         </LinearGradient>
 
