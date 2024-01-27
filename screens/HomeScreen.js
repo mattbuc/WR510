@@ -5,10 +5,13 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
+import ArtistCard from '../Components/ArtistCard';
+import RecentlyPlayedCard from '../Components/RecentlyPlayedCard';
 
 const HomeScreen = () => {
     const [userProfile, setUserProfile] = useState([]);
     const [recentlyplayed, setRecentlyPlayed] = useState([]);
+    const [topArtists, setTopArtists] = useState([]);
     const greetingMessage = () => {
         const currentTime = new Date().getHours();
         if (currentTime < 12) {
@@ -85,11 +88,35 @@ const HomeScreen = () => {
                     style={{ height: 55, width: 55 }}
                     source={{ uri: item.track.album.images[0].url }} />
                 <View style={{ flex: 1, marginHorizontal: 8, justifyContent: "center" }}>
-                    <Text style={{ fontSize: 13, fontWeight: "bold", color: "white" }} numberOfLines={1} ellipsizeMode="tail">{item.track.name}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: "bold", color: "white" }} numberOfLines={2} ellipsizeMode="tail">{item.track.name}</Text>
                 </View>
             </Pressable >
         )
-    }
+    };
+    useEffect(() => {
+        const GetTopItems = async () => {
+            try {
+                const accessToken = await AsyncStorage.getItem("token");
+                if (!accessToken) {
+                    console.log("Access Token not found");
+                    return;
+                }
+                const type = "artists";
+                const response = await axios.get(`https://api.spotify.com/v1/me/top/${type}`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    },
+                })
+                setTopArtists(response.data.items);
+            }
+            catch (err) {
+                console.log(err.message);
+            }
+        }
+
+        GetTopItems();
+    }, [])
+    console.log(topArtists);
     return (
         <LinearGradient colors={["#040306", "#131624"]} style={{ flex: 1 }}>
             <ScrollView style={styles.topView}>
@@ -187,7 +214,43 @@ const HomeScreen = () => {
                     </View>
 
                 </View>
-                <FlatList data={recentlyplayed} renderItem={renderItem} numColumns={2} columnWrapperStyle={{ justifyContent: "space-between" }} />
+                <FlatList data={recentlyplayed}
+                    renderItem={renderItem}
+                    numColumns={2}
+                    columnWrapperStyle={{ justifyContent: "space-between" }} />
+
+                <Text style={{
+                    color: "white",
+                    fontSize: 19,
+                    fontWeight: "bold",
+                    marginHorizontal: 10,
+                    marginTop: 10,
+                }}>Votre Top Artistes
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {topArtists.map((item, index) => (
+                        <ArtistCard item={item} key={index} />
+                    ))}
+                </ScrollView>
+
+                <View style={{ height: 10 }} />
+                <Text style={{
+                    color: "white",
+                    fontSize: 19,
+                    fontWeight: "bold",
+                    marginHorizontal: 10,
+                    marginTop: 10,
+                }}>Récemment joués
+                </Text>
+
+                <FlatList
+                    data={recentlyplayed}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    renderItem={({ item, index }) => (
+                        <RecentlyPlayedCard item={item} key={index} />
+                    )}
+                />
             </ScrollView>
         </LinearGradient>
 
