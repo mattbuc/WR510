@@ -11,6 +11,7 @@ import SongItem from '../Components/SongItem';
 import { Player } from '../PlayerContext';
 import { BottomModal } from 'react-native-modals';
 import { ModalContent } from 'react-native-modals';
+import { Audio } from 'expo-av';
 
 
 const LikedSongsScreen = ({ }) => {
@@ -19,6 +20,10 @@ const LikedSongsScreen = ({ }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [input, setInput] = useState("");
     const [savedTracks, setSavedTracks] = useState([]);
+    const [currentSound, setCurrentSound] = useState(null);
+    const [progress, setProgress] = useState(null);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [totalDuration, setTotalDuration] = useState(0);
     async function getSavedTracks() {
         try {
             const accessToken = await AsyncStorage.getItem("token");
@@ -60,8 +65,41 @@ const LikedSongsScreen = ({ }) => {
         }
         await play(savedTracks[0]);
     }
-    const play = async () => { }
-    console.log(currentTrack);
+    const play = async (nextTrack) => {
+        console.log(nextTrack);
+        const preview_url = nextTrack?.track?.preview_url;
+        try {
+            await Audio.setAudioModeAsync({
+                playsInSilentModeIOS: true,
+                staysActiveInBackground: false,
+                shouldDuckAndroid: false,
+            })
+            const { sound, status } = await Audio.Sound.createAsync(
+                { uri: preview_url },
+                { shouldPlay: true, isLooping: false },
+                onPlaybackStatusUpdate,
+            )
+            console.log("Sound object:", status)
+            onPlaybackStatusUpdate(status);
+            setCurrentSound(sound);
+            await sound.playAsync();
+        } catch (err) {
+            console.log(err.message);
+        }
+    }
+    const onPlaybackStatusUpdate = async (status) => {
+        console.log(status);
+        if (status.isLoaded && status.isPlaying) {
+            const progress = status.positionMillis / status.durationMillis;
+            console.log("progress:", progress);
+            setProgress(progress);
+            setCurrentTime(status.positionMillis);
+            setTotalDuration(status.durationMillis);
+            console.log("Current time:", status.positionMillis);
+            console.log("Total duration:", status.durationMillis);
+        }
+    }
+    const circleSize = 12;
     return (
         <>
         <LinearGradient colors={["#614385", "#516395"]} style={{ flex: 1 }} >
@@ -202,10 +240,10 @@ const LikedSongsScreen = ({ }) => {
                 <ModalContent style={{ height: "100%", width: "100%", backgroundColor: "#5072A7" }}>
                     <View style={{ height: "100%", width: "100%", marginTop: 40 }}>
                         <Pressable style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                            <AntDesign name="down" size={24} color="white" />
+                            <AntDesign onPress={() => setModalVisible(!modalVisible)} name="down" size={24} color="white" />
 
                             <Text style={{ fontSize: 13, fontWeight: "bold", color: "white" }}>{currentTrack?.track?.name}</Text>
-                            <Entypo name="dots-three-vertical" size={24} color="black" />
+                            <Entypo name="dots-three-vertical" size={24} color="white" />
                         </Pressable>
 
                         <View style={{ height: 80 }} />
@@ -221,12 +259,44 @@ const LikedSongsScreen = ({ }) => {
                             <AntDesign name="heart" size={24} color="#1DB954" />
                         </View>
                         <View style={{ marginTop: 12 }}>
-                            <Text>Bar de Progrés</Text>
+                            <View style={{
+                                width: "100%",
+                                marginTop: 10,
+                                height: 3,
+                                backgroundColor: "#D3D3D3",
+                                borderRadius: 5
+                            }}>
+                                <View style={[styles.progressbar, { width: `${progress * 100}` }]} />
+                                <View styles={[{
+                                    position: "absolute",
+                                    top: -5,
+                                    width: circleSize,
+                                    borderRadius: circleSize / 2,
+                                    height: circleSize,
+                                    bavckgroundColor: "white",
+                                },
+                                {
+                                    left: `${progress * 100}%`,
+                                    marginLeft: -circleSize / 2,
+                                }
+                                ]} />
+                            </View>
 
                             <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                                <Text style={{ color: "white", fontSize: 15 }}>0:00</Text>
-                                <Text style={{ color: "white", fontSize: 15 }}>3:00</Text>
+                                <Text style={{ color: "#D3D3D3", fontSize: 15 }}>0:00</Text>
+                                <Text style={{ color: "#D3D3D3", fontSize: 15 }}>3:00</Text>
                             </View>
+                        </View>
+                        <View style={{ marginTop: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                            <Pressable>
+                                <AntDesign name="banckward" size={24} color="white" marginLeft={40} />
+                            </Pressable>
+                            <Pressable>
+                                <AntDesign name="pausecircle" size={50} color="white" />
+                            </Pressable>
+                            <Pressable>
+                                <AntDesign name="forward" size={24} color="white" marginRight={40} />
+                            </Pressable>
                         </View>
                     </View>
                 </ModalContent>
@@ -237,4 +307,25 @@ const LikedSongsScreen = ({ }) => {
 
 export default LikedSongsScreen
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+    progressBarContainer: {
+        width: '100%',
+        height: 3,
+        backgroundColor: '#D3D3D3',
+        borderRadius: 5,
+        marginTop: 10,
+    },
+    progressBar: {
+        height: '100%',
+        borderRadius: 5,
+        backgroundColor: 'white',
+    },
+    progressIndicator: {
+        position: 'absolute',
+        top: -5,
+        width: circleSize,
+        height: circleSize,
+        borderRadius: circleSize / 2,
+        backgroundColor: 'white',
+    },
+})
