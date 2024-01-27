@@ -5,7 +5,12 @@ import { Entypo } from '@expo/vector-icons';
 
 const SongItem = ({ item }) => {
     return (
-        <Pressable style={{ flexDirection: "row", alignItems: "center", padding: 10 }}>
+        <Pressable
+            style={{
+                flexDirection: "row",
+                alignItems: "center",
+                padding: 10
+            }}>
             <Image source={{ uri: item?.track?.album?.images[0].url }} style={{ width: 50, height: 50, marginRight: 10 }} />
             <View style={{ justifyContent: "space-between", flex: 1 }}>
                 <Text style={{ color: "white", fontWeight: "bold", fontSize: 14 }} numberOfLines={1}>{item?.track?.name}</Text>
@@ -13,8 +18,8 @@ const SongItem = ({ item }) => {
             </View>
 
             <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginHorizontal: 10 }}>
-                <AntDesign name="heart" size={24} color="green" />
-                <Entypo name="dots-three-vertical" size={24} color="white" />
+                <AntDesign name="heart" size={24} color="#1DB954" />
+                <Entypo name="dots-three-vertical" size={24} color="#C0C0C0" />
             </View>
         </Pressable>
     )
