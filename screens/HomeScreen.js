@@ -7,9 +7,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import ArtistCard from '../Components/ArtistCard';
 import RecentlyPlayedCard from '../Components/RecentlyPlayedCard';
+import { useNavigation } from '@react-navigation/native';
 
 const HomeScreen = () => {
     const [userProfile, setUserProfile] = useState([]);
+    const navigation = useNavigation();
     const [recentlyplayed, setRecentlyPlayed] = useState([]);
     const [topArtists, setTopArtists] = useState([]);
     const greetingMessage = () => {
