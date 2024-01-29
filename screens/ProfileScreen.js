@@ -33,9 +33,8 @@ const ProfileScreen = () => {
         getProfile();
     }, []);
     const getProfile = async () => {
-        console.log("hi");
         const accessToken = await AsyncStorage.getItem("token");
-        console.log("accesssssed token", accessToken);
+        console.log("accessed token", accessToken);
         try {
             const response = await fetch("https://api.spotify.com/v1/me", {
                 headers: {
@@ -84,25 +83,26 @@ const ProfileScreen = () => {
                         marginHorizontal: 12,
                     }}
                 >
-                    Your Playlists
+                    Vos Playlists
                 </Text>
                 <View style={{ padding: 15 }}>
                     {playlists.map((item, index) => (
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginVertical: 10 }}>
-                            <Image
-                                source={{
-                                    uri:
-                                        item?.images[0]?.url ||
-                                        "https://images.pexels.com/photos/3944091/pexels-photo-3944091.jpeg?auto=compress&cs=tinysrgb&w=800",
-                                }}
-                                style={{ width: 50, height: 50, borderRadius: 4 }}
-                            />
-                            <View>
-                                <Text style={{ color: "white" }}>{item?.name}</Text>
-                                <Text style={{ color: "white", marginTop: 7 }}>{item?.tracks?.total} titres</Text>
-                            </View>
+                    <View key={index} style={{ flexDirection: "row", alignItems: "center", gap: 8, marginVertical: 10 }}>
+                        <Image
+                            key={item.id}  // Ajoutez cette ligne pour fournir une clé unique à chaque élément
+                            source={{
+                                uri:
+                                    item?.images[0]?.url ||
+                                    "https://images.pexels.com/photos/3944091/pexels-photo-3944091.jpeg?auto=compress&cs=tinysrgb&w=800",
+                            }}
+                            style={{ width: 50, height: 50, borderRadius: 4 }}
+                        />
+                        <View>
+                            <Text style={{ color: "white" }}>{item?.name}</Text>
+                            <Text style={{ color: "white", marginTop: 7 }}>{item?.tracks?.total} titres</Text>
                         </View>
-                    ))}
+                    </View>
+                ))}
                 </View>
             </ScrollView>
         </LinearGradient>

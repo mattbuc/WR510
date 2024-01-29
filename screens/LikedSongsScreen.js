@@ -34,13 +34,13 @@ const LikedSongsScreen = ({ }) => {
                 throw new Error("Access token is missing");
             }
 
-            const response = await fetch("https://api.spotify.com/v1/me/tracks", {
+            const response = await fetch("https://api.spotify.com/v1/me/tracks?offset=0&limit=50", {
                 headers: {
                     Authorization: `Bearer ${accessToken}`
                 },
                 params: {
                     limit: 50,
-                },
+                }
             });
 
             if (!response.ok) {
@@ -57,6 +57,7 @@ const LikedSongsScreen = ({ }) => {
 
     useEffect(() => {
         getSavedTracks().catch(error => {
+
             console.error("Error during component initialization:", error.message);
         });
         console.log("Musique sauvegardée :", savedTracks);
@@ -162,7 +163,7 @@ const LikedSongsScreen = ({ }) => {
     return (
         <>
         <LinearGradient colors={["#614385", "#516395"]} style={{ flex: 1 }} >
-            <ScrollView style={{ flex: 1, marginTop: 40 }}>
+                <View style={{ flex: 1, marginTop: 40 }} />
                 <Pressable onPress={() => navigation.goBack()}
                     style={{ marginHorizontal: 10 }}>
                     <Ionicons name="arrow-back" size={24} color="white" />
@@ -259,7 +260,9 @@ const LikedSongsScreen = ({ }) => {
                         </Pressable>
                     </View>
                 </Pressable>
-                    <FlatList
+
+
+                <FlatList
                         showsVerticalScrollIndicator={false}
                         data={savedTracks}
                         renderItem={({ item }) => (
@@ -267,8 +270,7 @@ const LikedSongsScreen = ({ }) => {
                                 item={item}
                                 onPress={play}
                                 isPlaying={item === currentTrack} />
-                )} />
-                </ScrollView>
+                    )} />
         </LinearGradient >
 
             {currentTrack && (
