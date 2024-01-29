@@ -1,14 +1,18 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import Navigation from './StackNavigator';
+import { PlayerContext } from './PlayerContext';
+import { ModalPortal } from 'react-native-modals';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text style={[styles.box, { backgroundColor: 'blue' }]}>Je suis blue</Text>
-      <Text style={[styles.box, { backgroundColor: 'yellow' }]}>Je suis yellow</Text>
-      <Text style={[styles.box, { backgroundColor: 'red' }]}>Je suis green</Text>
-      <StatusBar style="auto" />
-    </View>
+    <>
+      <PlayerContext>
+        <Navigation />
+        <ModalPortal />
+      </PlayerContext>
+    </>
+
 
   );
 }
